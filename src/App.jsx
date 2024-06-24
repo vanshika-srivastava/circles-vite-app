@@ -86,64 +86,64 @@ export default function Component() {
           )}
         </header>
         <main className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {!isConnected ? (
-          <div className="flex items-center justify-center">
-            <Button onClick={connectWallet} className="flex items-center justify-center bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-7 rounded">
-              Connect Wallet
+  {!isConnected ? (
+    <div className="flex items-center justify-center md:col-span-2">
+      <Button onClick={connectWallet} className="bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+        Connect Wallet
+      </Button>
+    </div>
+  ) : (
+    <>
+      <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg">
+        <h2 className="text-xl font-bold mb-4">Send Circles CRC Token</h2>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="recipient">Recipient Address</Label>
+            <Input
+              id="recipient"
+              type="text"
+              placeholder="Enter recipient address"
+              value={recipientAddress}
+              onChange={(e) => setRecipientAddress(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="amount">Amount to Send</Label>
+            <Input
+              id="amount"
+              type="number"
+              placeholder="Enter amount to send"
+              value={sendAmount}
+              onChange={(e) => setSendAmount(e.target.value)}
+            />
+          </div>
+          <Button onClick={sendEther} className="w-full bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+            Send CRC
+          </Button>
+        </div>
+      </div>
+      <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg">
+        <h2 className="text-xl font-bold mb-4">Your Balance</h2>
+        <div className="flex items-center gap-4">
+          {avatarImage ? (
+            <img src="/placeholder.svg" alt="Avatar" className="w-16 h-16 rounded-full" />
+          ) : (
+            <div className="w-16 h-16 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center justify-center">
+              <UserIcon className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+            </div>
+          )}
+          <div>
+            <div className="text-2xl font-bold">{userBalance} CRC</div>
+            <Button onClick={generateAvatar} className="mt-2 bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+              Create Avatar
             </Button>
           </div>
-          
-          ) : (
-            <>
-              <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg">
-                <h2 className="text-xl font-bold mb-4">Send Circles CRC Token</h2>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="recipient">Recipient Address</Label>
-                    <Input
-                      id="recipient"
-                      type="text"
-                      placeholder="Enter recipient address"
-                      value={recipientAddress}
-                      onChange={(e) => setRecipientAddress(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="amount">Amount to Send</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      placeholder="Enter amount to send"
-                      value={sendAmount}
-                      onChange={(e) => setSendAmount(e.target.value)}
-                    />
-                  </div>
-                  <Button onClick={sendEther} className="w-full">
-                    Send CRC
-                  </Button>
-                </div>
-              </div>
-              <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg">
-                <h2 className="text-xl font-bold mb-4">Your Balance</h2>
-                <div className="flex items-center gap-4">
-                  {avatarImage ? (
-                    <img src="/placeholder.svg" alt="Avatar" className="w-16 h-16 rounded-full" />
-                  ) : (
-                    <div className="w-16 h-16 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                      <UserIcon className="w-8 h-8 text-gray-500 dark:text-gray-400" />
-                    </div>
-                  )}
-                  <div>
-                    <div className="text-2xl font-bold">{userBalance} ETH</div>
-                    <Button onClick={generateAvatar} className="mt-2">
-                      Create Avatar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </main>
+        </div>
+      </div>
+    </>
+  )}
+</main>
+
       </div>
     </div>
   )
