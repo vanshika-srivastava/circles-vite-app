@@ -81,21 +81,22 @@ export default function Component() {
                   <UserIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                 </div>
               )}
-              <div className="text-sm font-medium">{userBalance} ETH</div>
+              <div className="text-sm font-medium">{userBalance} CRC </div>
             </div>
           )}
         </header>
         <main className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           {!isConnected ? (
-            <div className="flex items-center justify-center">
-              <Button onClick={connectWallet} className="w-full">
-                Connect Wallet
-              </Button>
-            </div>
+          <div className="flex items-center justify-center">
+            <Button onClick={connectWallet} className="flex items-center justify-center bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-7 rounded">
+              Connect Wallet
+            </Button>
+          </div>
+          
           ) : (
             <>
               <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg">
-                <h2 className="text-xl font-bold mb-4">Send Ether</h2>
+                <h2 className="text-xl font-bold mb-4">Send Circles CRC Token</h2>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="recipient">Recipient Address</Label>
@@ -118,7 +119,7 @@ export default function Component() {
                     />
                   </div>
                   <Button onClick={sendEther} className="w-full">
-                    Send Ether
+                    Send CRC
                   </Button>
                 </div>
               </div>
