@@ -19,16 +19,17 @@ const chainConfig = {
   migrationAddress: "0x0A1D308a39A6dF8972A972E586E4b4b3Dc73520f"
 };
 
-
 export default function Component() {
   const [isConnected, setIsConnected] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userBalance, setUserBalance] = useState(0)
+  // const [userBalance, setUserBalance] = useState(0)
   const [recipientAddress, setRecipientAddress] = useState("")
   const [sendAmount, setSendAmount] = useState(0)
   const [avatarImage, setAvatarImage] = useState(null)
 
+
   const provider = new ethers.providers.BrowserProvider(window.ethereum);
+  let signer = null; // Initialize signer as null
 
   const connectWallet = async () => {
     try {
@@ -38,28 +39,30 @@ export default function Component() {
         // Update state to reflect that the wallet is connected and logged in
         setIsConnected(true);
         setIsLoggedIn(true);
-
-        // Call a function to update the user's balance or perform other actions
-        updateBalance();
     } catch (error) {
         // Handle any errors that occur during wallet connection
         console.error("Error connecting wallet:", error);
+
+        signer = provider.getSigner();
+        console.log("Signer:", signer);
     }
   };
 
-  // const updateBalance = async () => {
-  //   try {
-  //     const accounts = await window.ethereum.request({ method: "eth_accounts" })
-  //     const balance = await window.ethereum.request({
-  //       method: "eth_getBalance",
-  //       params: [accounts[0], "latest"],
-  //     })
-  //     const balanceInEther = window.web3.utils.fromWei(balance, "ether")
-  //     setUserBalance(balanceInEther)
-  //   } catch (error) {
-  //     console.error("Error fetching balance:", error)
-  //   }
-  // }
+  async function initializeSdk(signer) {
+    try {
+        // Initialize the SDK with the chain configuration and the provider
+        const sdk = await new Sdk(chainConfig, signer);
+        console.log("SDK initialized:", sdk);
+
+        // Optionally store the SDK instance in state or use it further in your application
+        // Example: setSdkInstance(sdk);
+    } catch (error) {
+        console.error("Error initializing SDK:", error);
+        throw error; // Propagate the error for further handling if necessary
+    }
+}
+
+  
   const generateAvatar = () => {
     const canvas = document.createElement("canvas")
     canvas.width = 100
