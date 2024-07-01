@@ -10,6 +10,15 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
+const chainConfig = {
+  circlesRpcUrl: 'rpc.helsinki.aboutcircles.com',
+  pathfinderUrl: 'https://pathfinder.aboutcircles.com',
+  v1HubAddress: "0x29b9a7fBb8995b2423a71cC17cf9810798F6C543",
+  v2HubAddress: "0xFFfbD3E62203B888bb8E09c1fcAcE58242674964",
+  migrationAddress: "0x0A1D308a39A6dF8972A972E586E4b4b3Dc73520f"
+};
+
+
 export default function Component() {
   const [isConnected, setIsConnected] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -17,6 +26,10 @@ export default function Component() {
   const [recipientAddress, setRecipientAddress] = useState("")
   const [sendAmount, setSendAmount] = useState(0)
   const [avatarImage, setAvatarImage] = useState(null)
+
+  
+
+
   const connectWallet = async () => {
     try {
       await window.ethereum.request({ method: "eth_requestAccounts" })
