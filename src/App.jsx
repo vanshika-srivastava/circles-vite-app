@@ -9,6 +9,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { ethers } from "ethers"
 
 const chainConfig = {
   circlesRpcUrl: 'rpc.helsinki.aboutcircles.com',
@@ -27,32 +28,38 @@ export default function Component() {
   const [sendAmount, setSendAmount] = useState(0)
   const [avatarImage, setAvatarImage] = useState(null)
 
-  
-
+  const provider = new ethers.providers.BrowserProvider(window.ethereum);
 
   const connectWallet = async () => {
     try {
-      await window.ethereum.request({ method: "eth_requestAccounts" })
-      setIsConnected(true)
-      setIsLoggedIn(true)
-      updateBalance()
+        // Request account access from the user
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+
+        // Update state to reflect that the wallet is connected and logged in
+        setIsConnected(true);
+        setIsLoggedIn(true);
+
+        // Call a function to update the user's balance or perform other actions
+        updateBalance();
     } catch (error) {
-      console.error("Error connecting wallet:", error)
+        // Handle any errors that occur during wallet connection
+        console.error("Error connecting wallet:", error);
     }
-  }
-  const updateBalance = async () => {
-    try {
-      const accounts = await window.ethereum.request({ method: "eth_accounts" })
-      const balance = await window.ethereum.request({
-        method: "eth_getBalance",
-        params: [accounts[0], "latest"],
-      })
-      const balanceInEther = window.web3.utils.fromWei(balance, "ether")
-      setUserBalance(balanceInEther)
-    } catch (error) {
-      console.error("Error fetching balance:", error)
-    }
-  }
+  };
+
+  // const updateBalance = async () => {
+  //   try {
+  //     const accounts = await window.ethereum.request({ method: "eth_accounts" })
+  //     const balance = await window.ethereum.request({
+  //       method: "eth_getBalance",
+  //       params: [accounts[0], "latest"],
+  //     })
+  //     const balanceInEther = window.web3.utils.fromWei(balance, "ether")
+  //     setUserBalance(balanceInEther)
+  //   } catch (error) {
+  //     console.error("Error fetching balance:", error)
+  //   }
+  // }
   const generateAvatar = () => {
     const canvas = document.createElement("canvas")
     canvas.width = 100
@@ -62,24 +69,24 @@ export default function Component() {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     setAvatarImage(canvas.toDataURL())
   }
-  const sendEther = async () => {
-    try {
-      const accounts = await window.ethereum.request({ method: "eth_accounts" })
-      await window.ethereum.request({
-        method: "eth_sendTransaction",
-        params: [
-          {
-            from: accounts[0],
-            to: recipientAddress,
-            value: window.web3.utils.toWei(sendAmount.toString(), "ether"),
-          },
-        ],
-      })
-      updateBalance()
-    } catch (error) {
-      console.error("Error sending Ether:", error)
-    }
-  }
+  // const sendEther = async () => {
+  //   try {
+  //     const accounts = await window.ethereum.request({ method: "eth_accounts" })
+  //     await window.ethereum.request({
+  //       method: "eth_sendTransaction",
+  //       params: [
+  //         {
+  //           from: accounts[0],
+  //           to: recipientAddress,
+  //           value: window.web3.utils.toWei(sendAmount.toString(), "ether"),
+  //         },
+  //       ],
+  //     })
+  //     updateBalance()
+  //   } catch (error) {
+  //     console.error("Error sending Ether:", error)
+  //   }
+  // }
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
       <div className="w-full max-w-4xl bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
