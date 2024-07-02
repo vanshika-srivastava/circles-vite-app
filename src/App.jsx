@@ -16,11 +16,11 @@ import { Avatar } from "@circles-sdk/sdk"
 
 
 const chainConfig = {
-  circlesRpcUrl: 'rpc.helsinki.aboutcircles.com',
+  circlesRpcUrl: 'https://rpc.helsinki.aboutcircles.com',
   pathfinderUrl: 'https://pathfinder.aboutcircles.com',
   v1HubAddress: "0x29b9a7fBb8995b2423a71cC17cf9810798F6C543",
-  v2HubAddress: "0xFFfbD3E62203B888bb8E09c1fcAcE58242674964",
-  migrationAddress: "0x0A1D308a39A6dF8972A972E586E4b4b3Dc73520f"
+  v2HubAddress: "0x",
+  migrationAddress: "0x"
 };
 
 export default function Component() {
@@ -38,69 +38,69 @@ export default function Component() {
   let signer = null ;
   let walletAddress = null ;
   let sdk = null ;
-
+  let sdkInitialized = false;
 
   async function initializeSdk(signer) {
     try {
-        // Initialize the SDK with the chain configuration and the provider
-        sdk = new Sdk(chainConfig, signer);
-        console.log("SDK initialized:", sdk);
-        return sdk;                           // return sdk;
+      // Initialize the SDK with the chain configuration and the provider
+      sdk = new Sdk(chainConfig, signer);
+      console.log("SDK initialized:", sdk);
+      sdkInitialized = true;
+      return sdk; // Return the initialized SDK instance
     } catch (error) {
-        console.error("Error initializing SDK:", error);
-        throw error; // Propagate the error for further handling if necessary
+      console.error("Error initializing SDK:", error);
+      throw error; // Propagate the error for further handling if necessary
     }
-  };
+  }
 
-const connectWallet = async () => {
-  try {
+  const connectWallet = async () => {
+    try {
       // Request account access from the user
       await window.ethereum.request({ method: "eth_requestAccounts" });
 
       // Get the signer after the wallet is connected
       signer = await provider.getSigner();
-  
-      walletAddress = await signer.getAddress()
+      walletAddress = await signer.getAddress();
 
-      sdk = await initializeSdk(signer);
-      console.log("SDK after initialization:", sdk);
+      // Initialize SDK only if not already initialized
+      if (!sdkInitialized) {
+        sdk = await initializeSdk(signer); // Wait for SDK initialization
+        console.log("SDK after initialization:", sdk);
+      }
 
       // Update state to reflect that the wallet is connected and logged in
       setIsConnected(true);
       setIsLoggedIn(true);
-  } catch (error) {
+
+      // Optionally, trigger avatar checking and registration here
+      await checkAndRegisterAvatar();
+    } catch (error) {
       // Handle any errors that occur during wallet connection
       console.error("Error connecting wallet:", error);
-  }
+    }
   };
 
-
-  //once SDK initialized, check if the address is registered or not using getAvatarInfo, if not register as V1 Human
-
   async function checkAndRegisterAvatar() {
-    sdk = await initializeSdk(signer);
-    console.log("SDK after initialization:", sdk);
     try {
-      // Ensure circlesSDK is properly initialized
-      if (!sdk) {
-        throw new Error("Circles SDK is not initialized");
+      // Ensure sdk is properly initialized
+      if (!sdkInitialized || !sdk) {
+        throw new Error("SDK is not initialized");
       }
-  
+
       // Attempt to get the avatar info
-      try {
-        const avatar = await sdk.getAvatar(walletAddress);
-        console.log("Avatar found:", avatar);
-        setAvatar(avatar);
-      } catch (error) {
-        // If error occurs (avatar not found), register as human
-        console.log("Avatar not found, registering as human...");
-        const avatar = await sdk.registerHuman();
-        console.log("Registered as V1 Human:", avatar);
-        setAvatar(avatar);
-        generateAvatar();
-      }
+      const avatarInfo = await sdk.getAvatar(walletAddress);
+      console.log("Avatar found:", avatarInfo);
+      setAvatar(avatarInfo);
+      generateAvatar()
+      // Optionally, generate avatar or perform other actions
     } catch (error) {
-      console.error("Error during registration check:", error);
+      // If error occurs (avatar not found), register as human
+      console.log("Avatar not found, registering as human...");
+      const newAvatar = await sdk.registerHuman();
+      console.log("Registered as V1 Human:", newAvatar);
+      setAvatar(newAvatar);
+      generateAvatar()
+      // Optionally, generate avatar or perform other actions
     }
   }
   
