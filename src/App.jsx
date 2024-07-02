@@ -34,10 +34,10 @@ export default function Component() {
 
 
   const provider = new ethers.BrowserProvider(window.ethereum);
+
   let signer = null ;
   let walletAddress = null ;
   let sdk = null ;
-
 
 
   async function initializeSdk(signer) {
@@ -45,8 +45,7 @@ export default function Component() {
         // Initialize the SDK with the chain configuration and the provider
         sdk = new Sdk(chainConfig, signer);
         console.log("SDK initialized:", sdk);
-
-        // return sdk;
+        return sdk;                           // return sdk;
     } catch (error) {
         console.error("Error initializing SDK:", error);
         throw error; // Propagate the error for further handling if necessary
@@ -63,8 +62,8 @@ const connectWallet = async () => {
   
       walletAddress = await signer.getAddress()
 
-      // Initialize SDK after wallet connection
-      initializeSdk(signer);
+      sdk = await initializeSdk(signer);
+      console.log("SDK after initialization:", sdk);
 
       // Update state to reflect that the wallet is connected and logged in
       setIsConnected(true);
@@ -78,25 +77,32 @@ const connectWallet = async () => {
 
   //once SDK initialized, check if the address is registered or not using getAvatarInfo, if not register as V1 Human
 
-async function checkAndRegisterAvatar(sdk, signer) {
+  async function checkAndRegisterAvatar() {
+    sdk = await initializeSdk(signer);
+    console.log("SDK after initialization:", sdk);
     try {
-        try {
-            // Attempt to get the avatar info
-            const avatar = await sdk.getAvatar(walletAddress);
-            console.log("Avatar found:", avatar);
-            setAvatar(avatar);
-        } catch (error) {
-            // If error occurs (avatar not found), register as human
-            console.log("Avatar not found, registering as human...");
-            const avatar = await sdk.registerHuman();
-            console.log("Registered as V1 Human:", avatar);
-            setAvatar(avatar);
-            generateAvatar();
-        }
+      // Ensure circlesSDK is properly initialized
+      if (!sdk) {
+        throw new Error("Circles SDK is not initialized");
+      }
+  
+      // Attempt to get the avatar info
+      try {
+        const avatar = await sdk.getAvatar(walletAddress);
+        console.log("Avatar found:", avatar);
+        setAvatar(avatar);
+      } catch (error) {
+        // If error occurs (avatar not found), register as human
+        console.log("Avatar not found, registering as human...");
+        const avatar = await sdk.registerHuman();
+        console.log("Registered as V1 Human:", avatar);
+        setAvatar(avatar);
+        generateAvatar();
+      }
     } catch (error) {
-        console.error("Error during registration check:", error);
+      console.error("Error during registration check:", error);
     }
-  };
+  }
   
   const generateAvatar = () => {
     const canvas = document.createElement("canvas")
