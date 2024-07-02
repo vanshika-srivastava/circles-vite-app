@@ -10,6 +10,10 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { ethers } from "ethers"
+import { BrowserProvider } from "ethers"
+import { Sdk } from "@circles-sdk/sdk"
+import { Avatar } from "@circles-sdk/sdk"
+
 
 const chainConfig = {
   circlesRpcUrl: 'rpc.helsinki.aboutcircles.com',
@@ -20,48 +24,79 @@ const chainConfig = {
 };
 
 export default function Component() {
-  const [isConnected, setIsConnected] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isConnected, setIsConnected] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // const [signer, setSigner] = useState(null);
+  const [avatarImage, setAvatarImage] = useState(null);
   // const [userBalance, setUserBalance] = useState(0)
-  const [recipientAddress, setRecipientAddress] = useState("")
-  const [sendAmount, setSendAmount] = useState(0)
-  const [avatarImage, setAvatarImage] = useState(null)
+  // const [recipientAddress, setRecipientAddress] = useState("")
+  // const [sendAmount, setSendAmount] = useState(0)
 
 
-  const provider = new ethers.providers.BrowserProvider(window.ethereum);
-  let signer = null; // Initialize signer as null
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  let signer = null ;
+  let walletAddress = null ;
+  let sdk = null ;
 
-  const connectWallet = async () => {
-    try {
-        // Request account access from the user
-        await window.ethereum.request({ method: "eth_requestAccounts" });
 
-        // Update state to reflect that the wallet is connected and logged in
-        setIsConnected(true);
-        setIsLoggedIn(true);
-    } catch (error) {
-        // Handle any errors that occur during wallet connection
-        console.error("Error connecting wallet:", error);
-
-        signer = provider.getSigner();
-        console.log("Signer:", signer);
-    }
-  };
 
   async function initializeSdk(signer) {
     try {
         // Initialize the SDK with the chain configuration and the provider
-        const sdk = await new Sdk(chainConfig, signer);
+        sdk = new Sdk(chainConfig, signer);
         console.log("SDK initialized:", sdk);
 
-        // Optionally store the SDK instance in state or use it further in your application
-        // Example: setSdkInstance(sdk);
+        // return sdk;
     } catch (error) {
         console.error("Error initializing SDK:", error);
         throw error; // Propagate the error for further handling if necessary
     }
-}
+  };
 
+const connectWallet = async () => {
+  try {
+      // Request account access from the user
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+
+      // Get the signer after the wallet is connected
+      signer = await provider.getSigner();
+  
+      walletAddress = await signer.getAddress()
+
+      // Initialize SDK after wallet connection
+      initializeSdk(signer);
+
+      // Update state to reflect that the wallet is connected and logged in
+      setIsConnected(true);
+      setIsLoggedIn(true);
+  } catch (error) {
+      // Handle any errors that occur during wallet connection
+      console.error("Error connecting wallet:", error);
+  }
+  };
+
+
+  //once SDK initialized, check if the address is registered or not using getAvatarInfo, if not register as V1 Human
+
+async function checkAndRegisterAvatar(sdk, signer) {
+    try {
+        try {
+            // Attempt to get the avatar info
+            const avatar = await sdk.getAvatar(walletAddress);
+            console.log("Avatar found:", avatar);
+            setAvatar(avatar);
+        } catch (error) {
+            // If error occurs (avatar not found), register as human
+            console.log("Avatar not found, registering as human...");
+            const avatar = await sdk.registerHuman();
+            console.log("Registered as V1 Human:", avatar);
+            setAvatar(avatar);
+            generateAvatar();
+        }
+    } catch (error) {
+        console.error("Error during registration check:", error);
+    }
+  };
   
   const generateAvatar = () => {
     const canvas = document.createElement("canvas")
@@ -71,25 +106,8 @@ export default function Component() {
     ctx.fillStyle = "#" + Math.floor(Math.random() * 16777215).toString(16)
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     setAvatarImage(canvas.toDataURL())
-  }
-  // const sendEther = async () => {
-  //   try {
-  //     const accounts = await window.ethereum.request({ method: "eth_accounts" })
-  //     await window.ethereum.request({
-  //       method: "eth_sendTransaction",
-  //       params: [
-  //         {
-  //           from: accounts[0],
-  //           to: recipientAddress,
-  //           value: window.web3.utils.toWei(sendAmount.toString(), "ether"),
-  //         },
-  //       ],
-  //     })
-  //     updateBalance()
-  //   } catch (error) {
-  //     console.error("Error sending Ether:", error)
-  //   }
-  // }
+  };
+  
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
       <div className="w-full max-w-4xl bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
@@ -104,7 +122,7 @@ export default function Component() {
                   <UserIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                 </div>
               )}
-              <div className="text-sm font-medium">{userBalance} CRC </div>
+              <div className="text-sm font-medium"> CRC </div>
             </div>
           )}
         </header>
@@ -126,8 +144,8 @@ export default function Component() {
               id="recipient"
               type="text"
               placeholder="Enter recipient address"
-              value={recipientAddress}
-              onChange={(e) => setRecipientAddress(e.target.value)}
+              // value={recipientAddress}
+              // onChange={(e) => setRecipientAddress(e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -136,13 +154,13 @@ export default function Component() {
               id="amount"
               type="number"
               placeholder="Enter amount to send"
-              value={sendAmount}
-              onChange={(e) => setSendAmount(e.target.value)}
+              // value={sendAmount}
+              // onChange={(e) => setSendAmount(e.target.value)}
             />
           </div>
-          <Button onClick={sendEther} className="w-full bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+          {/* <Button onClick={sendEther} className="w-full bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
             Send CRC
-          </Button>
+          </Button> */}
         </div>
       </div>
       <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg">
@@ -156,9 +174,9 @@ export default function Component() {
             </div>
           )}
           <div>
-            <div className="text-2xl font-bold">{userBalance} CRC</div>
-            <Button onClick={generateAvatar} className="mt-2 bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
-              Create Avatar
+            <div className="text-2xl font-bold"> CRC</div>
+            <Button onClick={checkAndRegisterAvatar} className="mt-2 bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+              Get your Circles Avatar
             </Button>
           </div>
         </div>
