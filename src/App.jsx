@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -21,9 +21,11 @@ export default function Component() {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [avatarImage, setAvatarImage] = useState(null);
-  const [avatarInfo, setAvatar] = useState();
+  const [avatarInfo, setAvatar] = useState(null);
   const [userAddress, setUserAddress] = useState("");
   const [userBalance, setUserBalance] = useState(0);
+  const [mintableAmount, setMintableAmount] = useState(0);
+  const [totalBalance, setTotalBalance] = useState(0);
 
   const provider = new ethers.BrowserProvider(window.ethereum);
 
@@ -62,7 +64,7 @@ export default function Component() {
       setIsConnected(true);
       setIsLoggedIn(true);
 
-      await checkAndRegisterAvatar();
+      await handleAvatarCheckAndRegister();
     } catch (error) {
       console.error("Error connecting wallet:", error);
     }
@@ -76,7 +78,7 @@ export default function Component() {
     setAvatarImage(null);
   };
 
-  async function checkAndRegisterAvatar() {
+  const handleAvatarCheckAndRegister = async () => {
     try {
       if (!sdkInitialized || !sdk) {
         throw new Error("SDK is not initialized");
@@ -85,13 +87,46 @@ export default function Component() {
       const avatarInfo = await sdk.getAvatar(walletAddress);
       console.log("Avatar found:", avatarInfo);
       setAvatar(avatarInfo);
+
+      // Fetch additional avatar details
+      const mintableAmount = await avatarInfo.getMintableAmount(walletAddress);
+      const totalBalance = await avatarInfo.getTotalBalance(walletAddress);
+      setMintableAmount(mintableAmount);
+      setTotalBalance(totalBalance);
+
     } catch (error) {
       console.log("Avatar not found, registering as human...");
-      const newAvatar = await sdk.registerHuman();
-      console.log("Registered as V1 Human:", newAvatar);
-      setAvatar(newAvatar);
+      try {
+        const newAvatar = await sdk.registerHuman();
+        console.log("Registered as V1 Human:", newAvatar);
+        setAvatar(newAvatar);
+      } catch (registerError) {
+        console.error("Error registering avatar:", registerError);
+      }
     }
-  }
+  };
+
+  const personalMint = async () => {
+    try {
+      if (!avatarInfo) {
+        throw new Error("Avatar not found");
+      }
+
+      await avatarInfo.personalMint();
+
+      // Update total balance after minting
+      const totalBalance = await avatarInfo.getTotalBalance(walletAddress);
+      setTotalBalance(totalBalance);
+    } catch (error) {
+      console.error("Error minting Circles:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isConnected) {
+      handleAvatarCheckAndRegister();
+    }
+  }, [isConnected]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
@@ -99,15 +134,15 @@ export default function Component() {
         <header className="bg-gray-950 text-white px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">Welcome to Circles Dev Playground</h1>
           {isLoggedIn && (
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-6">
-              <div className="text-sm font-medium">{userBalance.slice(0,6)} xDAI </div>
-              <Button onClick={disconnectWallet} className="bg-red-700 hover:bg-red-600 text-white font-bold py-4 px-2rounded">
-                Disconnect Wallet
-              </Button>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6">
+                <div className="text-sm font-medium">{userBalance.slice(0, 6)} xDAI </div>
+                <Button onClick={disconnectWallet} className="bg-red-700 hover:bg-red-600 text-white font-bold py-4 px-2rounded">
+                  Disconnect Wallet
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
         </header>
         <main className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           {!isConnected ? (
@@ -143,20 +178,28 @@ export default function Component() {
                 </div>
               </div>
               <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg">
-                <h2 className="text-xl font-bold mb-4">Your Balance</h2>
+                <h2 className="text-xl font-bold mb-4">Circles Avatar Info</h2>
                 <div className="flex items-center gap-4">
                   {avatarImage ? (
-                    <img src="/placeholder.svg" alt="Avatar" className="w-16 h-16 rounded-full" />
+                    <img src="/placeholder.svg" alt="Avatar" className="w-12 h-12 rounded-full" />
                   ) : (
-                    <div className="w-16 h-16 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                      <UserIcon className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+                    <div className="w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                      <UserIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                     </div>
                   )}
                   <div>
-                    <div className="text-2xl font-bold"> CRC</div>
-                    <Button onClick={checkAndRegisterAvatar} className="mt-2 bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
-                      Get your Circles Avatar
-                    </Button>
+                    <Label className="block text-sm font-medium">Address: {avatarInfo?.address}</Label>
+                    <Label className="block text-sm font-medium">Total Balance: {totalBalance}</Label>
+                    {avatarInfo && (
+                      <Button onClick={personalMint} className="mt-2 bg-green-800 hover:bg-green-600 text-white font-bold py-2 px-6 rounded">
+                        Mint Circles
+                      </Button>
+                    )}
+                    {!avatarInfo && (
+                      <Button onClick={handleAvatarCheckAndRegister} className="mt-2 bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+                        Get your Circles Avatar
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -173,8 +216,8 @@ function UserIcon(props) {
     <svg
       {...props}
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
