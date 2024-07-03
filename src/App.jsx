@@ -22,6 +22,8 @@ export default function Component() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [avatarImage, setAvatarImage] = useState(null);
   const [avatarInfo, setAvatar] = useState();
+  const [userAddress, setUserAddress] = useState("");
+  const [userBalance, setUserBalance] = useState(0);
 
   const provider = new ethers.BrowserProvider(window.ethereum);
 
@@ -53,7 +55,10 @@ export default function Component() {
         sdk = await initializeSdk(signer);
         console.log("SDK after initialization:", sdk);
       }
+      const balance = await provider.getBalance(walletAddress);
+      setUserBalance(ethers.formatEther(balance));
 
+      setUserAddress(walletAddress);
       setIsConnected(true);
       setIsLoggedIn(true);
 
@@ -66,10 +71,9 @@ export default function Component() {
   const disconnectWallet = () => {
     setIsConnected(false);
     setIsLoggedIn(false);
-    signer = null;
-    walletAddress = null;
-    sdk = null;
-    sdkInitialized = false;
+    setUserAddress("");
+    setUserBalance(0);
+    setAvatarImage(null);
   };
 
   async function checkAndRegisterAvatar() {
@@ -99,6 +103,12 @@ export default function Component() {
               <Button onClick={disconnectWallet} className="bg-red-800 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
                 Disconnect Wallet
               </Button>
+              <div className="flex items-center gap-2">
+                <div className="text-sm font-medium">
+                  {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
+                </div>
+                <div className="text-sm font-medium">{userBalance} ETH</div>
+              </div>
               {avatarImage ? (
                 <img src="/placeholder.svg" alt="Avatar" className="w-10 h-10 rounded-full" />
               ) : (
