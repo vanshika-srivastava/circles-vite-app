@@ -99,26 +99,15 @@ export default function Component() {
         <header className="bg-gray-950 text-white px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">Welcome to Circles Dev Playground</h1>
           {isLoggedIn && (
-            <div className="flex items-center gap-4">
-              <Button onClick={disconnectWallet} className="bg-red-800 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
+              <div className="text-sm font-medium">{userBalance.slice(0,6)} xDAI </div>
+              <Button onClick={disconnectWallet} className="bg-red-700 hover:bg-red-600 text-white font-bold py-4 px-2rounded">
                 Disconnect Wallet
               </Button>
-              <div className="flex items-center gap-2">
-                <div className="text-sm font-medium">
-                  {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
-                </div>
-                <div className="text-sm font-medium">{userBalance} ETH</div>
-              </div>
-              {avatarImage ? (
-                <img src="/placeholder.svg" alt="Avatar" className="w-10 h-10 rounded-full" />
-              ) : (
-                <div className="w-10 h-10 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                  <UserIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                </div>
-              )}
-              <div className="text-sm font-medium"> CRC </div>
             </div>
-          )}
+          </div>
+        )}
         </header>
         <main className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           {!isConnected ? (
