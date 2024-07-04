@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { ethers } from "ethers"
 import { BrowserProvider } from "ethers"
 import { Sdk } from "@circles-sdk/sdk"
-import { Avatar } from "@circles-sdk/sdk"
+import { crcToTc, tcToCrc } from "@circles-sdk/utils"
 
 const chainConfig = {
   circlesRpcUrl: 'https://rpc.helsinki.aboutcircles.com',
@@ -26,6 +26,10 @@ export default function Component() {
   const [userBalance, setUserBalance] = useState(0);
   const [mintableAmount, setMintableAmount] = useState(0);
   const [totalBalance, setTotalBalance] = useState(0);
+  const [recipient, setRecipient] = useState("");
+  const [valueString, setValueString] = useState("");
+  const [recipientIsValid, setRecipientIsValid] = useState(false);
+  const [maxTransferableAmount, setMaxTransferableAmount] = useState(BigInt(0));
 
   const provider = new ethers.BrowserProvider(window.ethereum);
 
@@ -122,11 +126,49 @@ export default function Component() {
     }
   };
 
+  const send = async () => {
+    try {
+      if (!avatarInfo) {
+        throw new Error("Avatar not found");
+      }
+
+      await avatarInfo.transfer(recipient, tcToCrc(new Date(), parseFloat(valueString)));
+      // Redirect to dashboard or show a success message
+    } catch (error) {
+      console.error("Error sending CRC tokens:", error);
+    }
+  };
+
+  const setMax = async () => {
+    try {
+      if (!avatarInfo) {
+        throw new Error("Avatar not found");
+      }
+
+      const maxAmount = await maxTransferableAmount ?? BigInt(0);
+      setValueString(crcToTc(new Date(), maxAmount).toFixed(2));
+    } catch (error) {
+      console.error("Error setting max transferable amount:", error);
+    }
+  };
+
   useEffect(() => {
     if (isConnected) {
       handleAvatarCheckAndRegister();
     }
   }, [isConnected]);
+
+  useEffect(() => {
+    setRecipientIsValid(ethers.isAddress(recipient));
+
+    if (recipientIsValid && avatarInfo) {
+      avatarInfo.getMaxTransferableAmount(recipient).then(setMaxTransferableAmount).catch(error => {
+        console.error("Error getting max transferable amount:", error);
+      });
+    } else {
+      setMaxTransferableAmount(BigInt(0));
+    }
+  }, [recipient, avatarInfo]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
@@ -162,6 +204,8 @@ export default function Component() {
                       id="recipient"
                       type="text"
                       placeholder="Enter recipient address"
+                      value={recipient}
+                      onChange={(e) => setRecipient(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -170,10 +214,15 @@ export default function Component() {
                       id="amount"
                       type="number"
                       placeholder="Enter amount to send"
+                      value={valueString}
+                      onChange={(e) => setValueString(e.target.value)}
                     />
                   </div>
-                  <Button className="w-full bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+                  <Button onClick={send} className="w-full bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
                     Send CRC
+                  </Button>
+                  <Button onClick={setMax} className="w-full bg-green-800 hover:bg-green-600 text-white font-bold py-2 px-6 rounded mt-2">
+                    Set Max
                   </Button>
                 </div>
               </div>
