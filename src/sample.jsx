@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,7 +20,6 @@ const chainConfig = {
 export default function Component() {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [avatarImage, setAvatarImage] = useState(null);
   const [avatarInfo, setAvatar] = useState(null);
   const [userAddress, setUserAddress] = useState("");
   const [userBalance, setUserBalance] = useState(0);
@@ -28,9 +28,12 @@ export default function Component() {
   const [recipient, setRecipient] = useState("");
   const [valueString, setValueString] = useState("");
   const [recipientIsValid, setRecipientIsValid] = useState(false);
+  const [maxTransferableAmount, setMaxTransferableAmount] = useState(BigInt(0));
   const [trustedCircles, setTrustedCircles] = useState([]);
   const [untrustedCircles, setUntrustedCircles] = useState([]);
   const [newCircle, setNewCircle] = useState("");
+  const [transactionHistory, setTransactionHistory] = useState([]);
+  const [trustRelations, setTrustRelations] = useState([]);
 
   const provider = new ethers.BrowserProvider(window.ethereum);
 
@@ -80,7 +83,6 @@ export default function Component() {
     setIsLoggedIn(false);
     setUserAddress("");
     setUserBalance(0);
-    setAvatarImage(null);
   };
 
   const handleAvatarCheckAndRegister = async () => {
@@ -99,8 +101,16 @@ export default function Component() {
       setMintableAmount(mintableAmount);
       setTotalBalance(totalBalance);
 
+      // Fetch transaction history
+      const transactions = await avatarInfo.getTransactions();
+      setTransactionHistory(transactions);
+
+      // Fetch trust relations
+      const relations = await avatarInfo.getTrustRelations(walletAddress);
+      setTrustRelations(relations);
+
     } catch (error) {
-      console.log("Avatar not found, registering as human...");
+      console.error("Avatar not found or error:", error);
       try {
         const newAvatar = await sdk.registerHuman();
         console.log("Registered as V1 Human:", newAvatar);
@@ -140,18 +150,18 @@ export default function Component() {
     }
   };
 
-  // const setMax = async () => {
-  //   try {
-  //     if (!avatarInfo) {
-  //       throw new Error("Avatar not found");
-  //     }
+  const setMax = async () => {
+    try {
+      if (!avatarInfo) {
+        throw new Error("Avatar not found");
+      }
 
-  //     const maxAmount = await maxTransferableAmount ?? BigInt(0);
-  //     setValueString(crcToTc(new Date(), maxAmount).toFixed(2));
-  //   } catch (error) {
-  //     console.error("Error setting max transferable amount:", error);
-  //   }
-  // };
+      const maxAmount = await maxTransferableAmount ?? BigInt(0);
+      setValueString(crcToTc(new Date(), maxAmount).toFixed(2));
+    } catch (error) {
+      console.error("Error setting max transferable amount:", error);
+    }
+  };
 
   useEffect(() => {
     if (isConnected) {
@@ -159,6 +169,17 @@ export default function Component() {
     }
   }, [isConnected]);
 
+  useEffect(() => {
+    setRecipientIsValid(ethers.isAddress(recipient));
+
+    if (recipientIsValid && avatarInfo) {
+      avatarInfo.getMaxTransferableAmount(recipient).then(setMaxTransferableAmount).catch(error => {
+        console.error("Error getting max transferable amount:", error);
+      });
+    } else {
+      setMaxTransferableAmount(BigInt(0));
+    }
+  }, [recipient, avatarInfo]);
 
   const trustNewCircle = async () => {
     try {
@@ -240,12 +261,15 @@ export default function Component() {
                   <Button onClick={send} className="w-full bg-blue-800 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
                     Send CRC
                   </Button>
+                  <Button onClick={setMax} className="w-full bg-green-800 hover:bg-green-600 text-white font-bold py-2 px-6 rounded mt-2">
+                    Set Max
+                  </Button>
                 </div>
               </div>
               <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg">
                 <h2 className="text-xl font-bold mb-6">Circles Avatar Info</h2>
                 <div className="flex items-center gap-4">
-                  {avatarImage ? (
+                  {avatarInfo ? (
                     <img src="/placeholder.svg" alt="Avatar" className="w-12 h-12 rounded-full" />
                   ) : (
                     <div className="w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center justify-center">
@@ -268,9 +292,21 @@ export default function Component() {
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg h-full md:col-span-2">
+              <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg">
+                <h2 className="text-xl font-bold mb-4">Trust Relations</h2>
+                <ScrollArea className="h-60">
+                  <div className="space-y-2">
+                    {transactionHistory.map((tx, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-200 dark:bg-gray-700 p-4 rounded-lg">
+                        <div>{tx}</div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+              <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg">
                 <h2 className="text-xl font-bold mb-4">Trusted & Untrusted Circles</h2>
-                <ScrollArea className="h-full">
+                <ScrollArea className="h-60">
                   <div className="space-y-2">
                     {[...trustedCircles, ...untrustedCircles].map((circle, index) => (
                       <div
@@ -317,7 +353,6 @@ export default function Component() {
     </div>
   );
 }
-
 
 function UserIcon(props) {
   return (
