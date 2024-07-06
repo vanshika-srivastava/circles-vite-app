@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ const chainConfig = {
 };
 
 export default function CirclesOnboarding() {
+
   const [isConnected, setIsConnected] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [avatarImage, setAvatarImage] = useState(null);
@@ -32,6 +34,10 @@ export default function CirclesOnboarding() {
   const [trustedCircles, setTrustedCircles] = useState([]);
   const [untrustedCircles, setUntrustedCircles] = useState([]);
   const [newCircle, setNewCircle] = useState("");
+  const [trustRelations, setTrustRelations] = useState([]);
+  const navigate = useNavigate();
+  
+
 
   const provider = new ethers.BrowserProvider(window.ethereum);
 
@@ -91,6 +97,24 @@ export default function CirclesOnboarding() {
       const avatarInfo = await sdk.getAvatar(walletAddress);
       console.log("Avatar found:", avatarInfo);
       setAvatar(avatarInfo);
+
+      const trustRelations = await avatarInfo.getTrustRelations("");
+      console.log("Trust Relations:", trustRelations);
+  
+      // Update trusted circles state
+      setTrustedCircles(trustRelations.map(rel => rel.objectAvatar));
+
+      const mappedRelations = trustRelations.map(rel => ({
+        timestamp: rel.timestamp, // Assuming date is a property in the trust relation object
+        objectAvatar: rel.objectAvatar,
+        relations: rel.relation  // Assuming relation is a property in the trust relation object
+      }));
+
+      setTrustRelations(mappedRelations);
+      console.log(mappedRelations,"got mapped data");
+
+      navigate('/dashboard', { state: { trustRelations: mappedRelations } });
+
       
       // Fetch additional avatar details
       const mintableAmount = await avatarInfo.getMintableAmount(walletAddress);
@@ -137,15 +161,7 @@ export default function CirclesOnboarding() {
       console.error("Error sending CRC tokens:", error);
     }
   };
-
-  const logTrustRelations = async () => {
-    try {
-      const trustRelations = await avatarInfo.getTrustRelations("");
-      console.log("Trust Relations:", trustRelations);
-    } catch (error) {
-      console.error("Error fetching trust relations:", error);
-    }
-  };
+  
 
   const validateRecipient = () => {
     // Assuming a simple check for a valid Ethereum address format
