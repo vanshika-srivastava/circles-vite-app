@@ -34,7 +34,7 @@ export default function CirclesOnboarding() {
   const [trustedCircles, setTrustedCircles] = useState([]);
   const [untrustedCircles, setUntrustedCircles] = useState([]);
   const [newCircle, setNewCircle] = useState("");
-  const [trustRelations, setTrustRelations] = useState([]);
+  const [mappedRelations, setTrustRelations] = useState([]);
   const navigate = useNavigate();
   
 
@@ -113,8 +113,6 @@ export default function CirclesOnboarding() {
       setTrustRelations(mappedRelations);
       console.log(mappedRelations,"got mapped data");
 
-      navigate('/dashboard', { state: { trustRelations: mappedRelations } });
-
       
       // Fetch additional avatar details
       const mintableAmount = await avatarInfo.getMintableAmount(walletAddress);
@@ -132,6 +130,10 @@ export default function CirclesOnboarding() {
         console.error("Error registering avatar:", registerError);
       }
     }
+  };
+
+  const handleNavigateToDashboard = () => {
+    navigate('/dashboard', { state: { trustRelations: mappedRelations } });
   };
 
   const personalMint = async () => {
@@ -244,7 +246,7 @@ export default function CirclesOnboarding() {
                   <Button onClick={disconnectWallet} className="bg-red-700 hover:bg-red-600 text-white font-bold py-4 px-2 rounded">
                     Disconnect Wallet
                   </Button>
-                  <Button onClick={() => window.location.href = "/dashboard"} className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-4 px-2 rounded">
+                  <Button onClick={handleNavigateToDashboard} className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-4 px-2 rounded">
                     Dashboard</Button>
                 </div>
               </div>
