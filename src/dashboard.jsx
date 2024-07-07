@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "./components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
 export default function Dashboard() {
@@ -37,14 +38,32 @@ export default function Dashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {trustRelations.map((row, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{new Date(row.timestamp * 1000).toLocaleString()}</TableCell>
-                        <TableCell>{row.relations}</TableCell>
-                        <TableCell>{row.objectAvatar}</TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-                    ))}
+                    {trustRelations.map((row, index) => {
+                      const date = new Date(row.timestamp * 1000);
+                      const isIncoming = row.relation === "trustedBy";
+                      const isOutgoing = row.relation === "trusts";
+                      const isMutual = row.relation === "mutuallyTrusts";
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>{date.toLocaleString()}</TableCell>
+                          <TableCell>
+                            {isMutual ? "Mutually Trusted" : isIncoming ? "Incoming" : "Outgoing"}
+                          </TableCell>
+                          <TableCell>{row.objectAvatar}</TableCell>
+                          <TableCell>
+                            {isOutgoing ? (
+                              <Button onClick={() => handleRemoveTrust(row.objectAvatar)}>
+                                Remove Trust
+                              </Button>
+                            ) : (
+                              <Button onClick={() => handleAddTrust(row.objectAvatar)}>
+                                Add Trust
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </ScrollArea>
