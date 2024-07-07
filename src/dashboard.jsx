@@ -1,12 +1,14 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "./components/ui/button";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+// Dashboard.jsx
 
-export default function Dashboard({ avatarInfo }) {
+import React, { useState, useEffect } from 'react';
+import { useLocation,useNavigate } from 'react-router-dom';
+import { ScrollArea } from "./components/ui/scroll-area";
+import { Button } from "./components/ui/button";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "./components/ui/table";
+
+const Dashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [trustRelations, setTrustRelations] = useState([]);
 
   useEffect(() => {
@@ -14,6 +16,11 @@ export default function Dashboard({ avatarInfo }) {
       setTrustRelations(location.state.trustRelations);
     }
   }, [location.state]);
+
+
+  const handleNavigateToMainPage = () => {
+    navigate('/');
+  };
 
 //   const handleRemoveTrust = async (address) => {
 //     try {
@@ -43,11 +50,12 @@ export default function Dashboard({ avatarInfo }) {
     <div className="flex items-center justify-center w-screen h-screen bg-gray-100 dark:bg-gray-900">
       <div className="w-full h-full max-w-none bg-white dark:bg-gray-800 shadow-lg rounded-none overflow-hidden">
         <header className="bg-gray-950 text-white px-8 py-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Trusts</h1>
+          <h1 className="text-3xl font-bold">Trusts Connection Dashboard</h1>
+          <Button onClick ={handleNavigateToMainPage}className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-4 px-2 rounded">
+                    Go back to Circles Playground</Button>
         </header>
         <main className="p-6 h-[calc(100vh-60px)]">
           <div className="bg-gray-100 dark:bg-gray-900 p-5 rounded-lg h-full">
-            {console.log(trustRelations)}
             {trustRelations.length === 0 ? (
               <p>No trust relations found!</p>
             ) : (
@@ -58,7 +66,7 @@ export default function Dashboard({ avatarInfo }) {
                       <TableHead>Date</TableHead>
                       <TableHead>Relation</TableHead>
                       <TableHead>Address</TableHead>
-                      <TableHead>Add/Remove Trust</TableHead>
+                      {/* <TableHead>Add/Remove Trust</TableHead> */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -74,7 +82,7 @@ export default function Dashboard({ avatarInfo }) {
                             {isMutual ? "Mutually Trusted" : isIncoming ? "Incoming Trust" : "Outgoing Trust"}
                           </TableCell>
                           <TableCell>{row.objectAvatar}</TableCell>
-                          <TableCell>
+                          {/* <TableCell>
                             {isOutgoing || isMutual ? (
                               <Button onClick={() => handleRemoveTrust(row.objectAvatar)}>
                                 Remove Trust
@@ -84,7 +92,7 @@ export default function Dashboard({ avatarInfo }) {
                                 Add Trust
                               </Button>
                             )}
-                          </TableCell>
+                          </TableCell> */}
                         </TableRow>
                       );
                     })}
@@ -97,4 +105,6 @@ export default function Dashboard({ avatarInfo }) {
       </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

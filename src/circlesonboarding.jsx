@@ -43,8 +43,8 @@ export default function CirclesOnboarding() {
 
   let signer = null;
   let walletAddress = null;
-  let sdk = null;
   let sdkInitialized = false;
+  let sdk = null;
 
   async function initializeSdk(signer) {
     try {
@@ -233,7 +233,9 @@ export default function CirclesOnboarding() {
 
 
 
+
   return (
+    
       <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
         <div className="w-full max-w-6xl bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
           <header className="bg-gray-950 text-white px-6 py-4 flex items-center justify-between">
@@ -245,7 +247,7 @@ export default function CirclesOnboarding() {
                   <Button onClick={disconnectWallet} className="bg-red-700 hover:bg-red-600 text-white font-bold py-4 px-2 rounded">
                     Disconnect Wallet
                   </Button>
-                  <Button onClick ={handleNavigateToDashboard} className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-4 px-2 rounded">
+                  <Button onClick ={handleNavigateToDashboard}className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-4 px-2 rounded">
                     Dashboard</Button>
                 </div>
               </div>
@@ -317,8 +319,6 @@ export default function CirclesOnboarding() {
                 </div>
                 <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg h-full md:col-span-2">
                   <h2 className="text-xl font-bold mb-4">Trust new circles avatar</h2>
-                  <ScrollArea style={{ maxHeight: '300px', overflowY: 'auto' }} className="custom-scroll-area">
-                  <div className="space-y-2">
                     <div className="space-y-2">
                       <Input
                         id="newCircle"
@@ -336,8 +336,10 @@ export default function CirclesOnboarding() {
                         Trust
                       </Button>
                     </div>
+                    <ScrollArea style={{ maxHeight: '150px', overflowY: 'auto' }} className="custom-scroll-area">
+                    <div className="space-y-2">
                     {[...trustedCircles, ...untrustedCircles].map((circle, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-200 dark:bg-gray-700 p-4 rounded-lg">
+                      <div key={index} className="flex items-center justify-between bg-gray-200 dark:bg-gray-700 p-2 rounded-lg">
                         <div>{circle}</div>
                         {trustedCircles.includes(circle) ? (
                           <Button onClick={() => untrustCircle(circle)} variant="outline" size="sm">
