@@ -233,7 +233,6 @@ export default function CirclesOnboarding() {
 
 
 
-
   return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
         <div className="w-full max-w-6xl bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
@@ -246,7 +245,7 @@ export default function CirclesOnboarding() {
                   <Button onClick={disconnectWallet} className="bg-red-700 hover:bg-red-600 text-white font-bold py-4 px-2 rounded">
                     Disconnect Wallet
                   </Button>
-                  <Button onClick={handleNavigateToDashboard} className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-4 px-2 rounded">
+                  <Button onClick ={handleNavigateToDashboard} className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-4 px-2 rounded">
                     Dashboard</Button>
                 </div>
               </div>

@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "./components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
-export default function Dashboard() {
+export default function Dashboard({ avatarInfo }) {
   const location = useLocation();
   const [trustRelations, setTrustRelations] = useState([]);
 
@@ -14,6 +14,30 @@ export default function Dashboard() {
       setTrustRelations(location.state.trustRelations);
     }
   }, [location.state]);
+
+//   const handleRemoveTrust = async (address) => {
+//     try {
+//       if (!avatarInfo) {
+//         throw new Error("Avatar not found");
+//       }
+//       await avatarInfo.untrust(address);
+//       setTrustRelations(trustRelations.filter((rel) => rel.objectAvatar !== address));
+//     } catch (error) {
+//       console.error("Error removing trust:", error);
+//     }
+//   };
+
+//   const handleAddTrust = async (address) => {
+//     try {
+//       if (!avatarInfo) {
+//         throw new Error("Avatar not found");
+//       }
+//       await avatarInfo.trust(address);
+//       setTrustRelations([...trustRelations, { objectAvatar: address, relation: "trusts", timestamp: Math.floor(Date.now() / 1000) }]);
+//     } catch (error) {
+//       console.error("Error adding trust:", error);
+//     }
+//   };
 
   return (
     <div className="flex items-center justify-center w-screen h-screen bg-gray-100 dark:bg-gray-900">
@@ -47,11 +71,11 @@ export default function Dashboard() {
                         <TableRow key={index}>
                           <TableCell>{date.toLocaleString()}</TableCell>
                           <TableCell>
-                            {isMutual ? "Mutually Trusted" : isIncoming ? "Incoming" : "Outgoing"}
+                            {isMutual ? "Mutually Trusted" : isIncoming ? "Incoming Trust" : "Outgoing Trust"}
                           </TableCell>
                           <TableCell>{row.objectAvatar}</TableCell>
                           <TableCell>
-                            {isOutgoing ? (
+                            {isOutgoing || isMutual ? (
                               <Button onClick={() => handleRemoveTrust(row.objectAvatar)}>
                                 Remove Trust
                               </Button>
