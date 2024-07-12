@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "./components/ui/scroll-area";
-import { ethers } from "ethers";
-import { Sdk } from "@circles-sdk/sdk";
-import { crcToTc, tcToCrc } from "@circles-sdk/utils";
+import { BrowserProvider, ethers } from "ethers";
+import {Sdk} from "@circles-sdk/sdk";
 import Dashboard from "./dashboard";
 
 const chainConfig = {
@@ -46,17 +45,24 @@ export default function CirclesOnboarding() {
   let sdkInitialized = false;
   let sdk = null;
 
-  async function initializeSdk(signer) {
-    try {
-      sdk = new Sdk(chainConfig, signer);
-      console.log("SDK initialized:", sdk);
-      sdkInitialized = true;
-      return sdk;
-    } catch (error) {
-      console.error("Error initializing SDK:", error);
-      throw error;
-    }
+  async function getRunner() {
+    const browserProvider = new BrowserProvider(window.ethereum)
+    const signer = await browserProvider.getSigner();
+    const address = await signer.getAddress();
+    
+    return {
+        runner: signer,
+        address: address
+    };
   }
+
+  async function initializeSdk() {
+    const runner = await getRunner();
+    sdk = new Sdk(chainConfig, runner);
+    sdkInitialized = true;
+    return sdk;
+  }
+
 
   const connectWallet = async () => {
     try {
@@ -151,19 +157,35 @@ export default function CirclesOnboarding() {
     }
   };
 
+  async function updateBalance()
+  {
+    const totalBalance = await avatarInfo.getTotalBalance(walletAddress);
+      setTotalBalance(totalBalance);
+  }
+
   const send = async () => {
     try {
       if (!avatarInfo) {
         throw new Error("Avatar not found");
       }
 
-      await avatarInfo.transfer(recipient, tcToCrc(new Date(), parseFloat(valueString)));
-      // Redirect to dashboard or show a success message
+      const value = parseFloat(valueString);
+      if (isNaN(value) || value <= 0) {
+        throw new Error("Invalid value");
+      }
+
+      if (!ethers.isAddress(recipient)) {
+        throw new Error("Invalid recipient address");
+      }
+
+      await avatarInfo.transfer(recipient, value);
+      console.log(`Successfully sent ${value} CRC tokens to ${recipient}`);
+      // Optionally, redirect to dashboard or show a success message
     } catch (error) {
       console.error("Error sending CRC tokens:", error);
     }
+    updateBalance()
   };
-  
 
   const validateRecipient = () => {
     // Assuming a simple check for a valid Ethereum address format
